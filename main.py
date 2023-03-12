@@ -1,9 +1,15 @@
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
+import argparse
 
 BoardShim.enable_dev_board_logger()
 
+# configure argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('--serial-port', type=str, help='serial port', required=False, default='')
+args = parser.parse_args()
+
 params = BrainFlowInputParams()
-params.serial_port = "COM1"
+params.serial_port = args.serial_port
 
 
 board = BoardShim(BoardIds.CYTON_DAISY_BOARD, params)
