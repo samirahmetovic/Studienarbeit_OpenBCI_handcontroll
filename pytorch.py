@@ -1,3 +1,8 @@
+# -------------------------------------------------------------------
+# this python script will train with the data from /training_data
+# it will safe the traind model in /models
+# -------------------------------------------------------------------
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
