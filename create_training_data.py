@@ -14,10 +14,12 @@ BoardShim.enable_dev_board_logger()
 # configure argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--serial-port', type=str, help='serial port', required=False, default='')
+parser.add_argument('--fist', type=bool, help='is training data hand fist?', required=False, default='')
 args = parser.parse_args()
 
 params = BrainFlowInputParams()
 params.serial_port = args.serial_port
+
 
 
 board = BoardShim(BoardIds.CYTON_DAISY_BOARD, params)
@@ -47,11 +49,21 @@ raw.plot_psd(average=True)
 plt.savefig('psd.png')
 
 
-# convert it to pandas DF and plot data
-df = pd.DataFrame(np.transpose (data))
-# df.columns = [i for i in range(len(data))]
+# convert it to pandas DF
+df = pd.DataFrame(np.transpose(eeg_data), columns=[i+1 for i in range(eeg_data.shape[1])])
 
+# add column for hand closed / open
+# hand closed = 0
+# hand open = 1
+if args.fist:
+    fist = 1
+else:
+    fist = 0
+
+df['fist'] = [fist] * len(df)
 
 # write to file
+df.to_csv('eeg_df.csv', index=False)
+
 DataFilter.write_file(data, "data.csv", "w")
 DataFilter.write_file(eeg_data, "eeg.csv", "w")
