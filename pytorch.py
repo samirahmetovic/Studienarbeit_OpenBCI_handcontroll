@@ -28,10 +28,10 @@ class EEGClassifier(nn.Module):
 
 # Define hyperparameters
 input_size = inputs.shape[1]
-hidden_size = 8
+hidden_size = 32
 output_size = 1
 lr = 0.001
-num_epochs = 100
+num_epochs = 200
 
 # Initialize model, loss function, and optimizer
 model = EEGClassifier(input_size, hidden_size, output_size)
@@ -50,8 +50,12 @@ for epoch in range(num_epochs):
     optimizer.step()
 
     # Print loss for monitoring training progress
-    if epoch % 10 == 0:
-        print('Epoch [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, loss.item()))
+    if (epoch + 1) % 20 == 0:
+        print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
+
+
+# safe model to file
+torch.save(EEGClassifier.state_dict(), "model.pth")
 
 # Test the model on a new input
 test_input = torch.tensor([[0.5, 0.6, 0.4, 0.2, 0.1, 0.7]])
