@@ -33,6 +33,8 @@ eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
 eeg_data = data[eeg_channels, :]
 eeg_data = eeg_data / 1000000  # BrainFlow returns uV, convert to V for MNE
 
+print(f"EEG_data: {eeg_data}")
+
 # Creating MNE objects from brainflow data arrays
 ch_types = ['eeg'] * len(eeg_channels)
 ch_names = BoardShim.get_eeg_names(BoardIds.CYTON_DAISY_BOARD.value)
@@ -41,6 +43,7 @@ info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
 raw = mne.io.RawArray(eeg_data, info)
 # its time to plot something!
 raw.plot_psd(average=True)
+# raw.compute_psd().plot()
 plt.savefig('psd.png')
 
 
@@ -49,11 +52,6 @@ df = pd.DataFrame(np.transpose (data))
 # df.columns = [i for i in range(len(data))]
 
 
-
-print('Data From the Board')
-print (df.head(2))
-
 # write to file
 DataFilter.write_file(data, "data.csv", "w")
-
-print(data)
+DataFilter.write_file(eeg_data, "eeg.csv", "w")
