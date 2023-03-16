@@ -1,13 +1,3 @@
-# -------------------------------------------------------------------
-# this python script will generate the training data for pytorch
-# it safes the .csv files in /training_data
-# 
-# use --serial SERIAL for the serial port the OpenBCI USB is plugged in
-# use --arm left / right to spezify the arm you're training for
-# use --hand open / closed to speozify if hand is open or closed
-# -------------------------------------------------------------------
-
-
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
 import argparse
@@ -20,6 +10,7 @@ import matplotlib.pyplot as plt
 import mne
 import datetime
 import os
+
 # BoardShim.enable_dev_board_logger()
 
 # File path
@@ -39,15 +30,14 @@ params.serial_port = args.serial_port
 # left or right hand
 # if not -> exit
 if not (args.arm == "left" or args.arm == "right"):
-    print("Your not specifiing the arm your training for. use --arm left OR --arm right")
+    print("Your not specifying the arm you're training for. use --arm left OR --arm right")
     exit(1)
 
 # open or closed hand
 # if not -> exit
 if not (args.hand == "open" or args.hand == "closed"):
-    print("Your not specifiing the hand status your training for. use --hand open OR --hand closed")
+    print("Your not specifying the hand status you're training for. use --hand open OR --hand closed")
     exit(1)
-
 
 CURR_DIR = os.path.join(CURR_DIR, args.arm)
 
@@ -55,15 +45,23 @@ board = BoardShim(BoardIds.CYTON_DAISY_BOARD, params)
 board.prepare_session()
 board.start_stream()
 time.sleep(5)
-# data = board.get_current_board_data (256) # get latest 256 packages or less, doesnt remove them from internal buffer
-data = board.get_board_data()  # get all data and remove it from internal buffer
+data = board.get_board_data()
 board.stop_stream()
 board.release_session()
 
 eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
-
 eeg_data = data[eeg_channels, :]
 eeg_data = eeg_data / 1000000  # BrainFlow returns uV, convert to V for MNE
+
+# Apply a bandpass filter to the EEG data
+low_cut = 8  # Lower frequency bound (Hz)
+high_cut = 12  # Upper frequency bound (Hz)
+order = 4  # Filter order
+sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD.value)
+filter_type = FilterTypes.BUTTERWORTH.value  # Choose the filter type
+
+for channel in eeg_channels:
+    DataFilter.perform_bandpass(eeg_data[channel], sampling_rate, low_cut, high_cut, order, filter_type, 0)
 
 # Creating MNE objects from brainflow data arrays
 ch_types = ['eeg'] * len(eeg_channels)
@@ -71,27 +69,19 @@ ch_names = BoardShim.get_eeg_names(BoardIds.CYTON_DAISY_BOARD.value)
 sfreq = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD.value)
 info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
 raw = mne.io.RawArray(eeg_data, info)
+
 # its time to plot something!
 raw.plot_psd(average=True)
-# raw.compute_psd().plot()
 plt.savefig('psd.png')
 
-
 # convert it to pandas DF
-# df = pd.DataFrame(np.transpose(eeg_data), columns=[i+1 for i in range(eeg_data.shape[0])])
 df = pd.DataFrame(np.transpose(eeg_data))
 
-
 # add column for hand closed / open
-# hand closed = 0
-# hand open = 1
-
 if args.hand == "closed":
     fist = 1
-    #CURR_DIR = os.path.join(CURR_DIR, "hand-closed")
 else:
     fist = 0
-    #CURR_DIR = os.path.join(CURR_DIR, "hand-open")
 
 df[17] = [fist] * len(df)
 

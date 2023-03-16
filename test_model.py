@@ -21,22 +21,36 @@ params = BrainFlowInputParams()
 params.serial_port = args.serial_port
 
 board = BoardShim(BoardIds.CYTON_DAISY_BOARD, params)
+eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
 board.prepare_session()
+board.start_stream()
 
 while True:
     if keyboard.is_pressed('q'):
         break
-    board.start_stream()
-    time.sleep(0.5)
-    data = board.get_current_board_data() # get latest 256 packages or less, doesnt remove them from internal buffer
-    board.stop_stream()
-    eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
+    # data = board.get_current_board_data(BoardShim.get_sampling_rate(board.get_board_id()))  # get all data and remove it from internal buffer
+    # get current data
+    # get NumPy array with 1 sample and 16 channsls
+    data = board.get_current_board_data(1)
     eeg_data = data[eeg_channels, :]
     eeg_data = eeg_data / 1000000
-    test_input = torch.tensor([[0.5, 0.6, 0.4, 0.2, 0.1, 0.7]])
-    if prediction >= 0.5:
-        print('Predicted class: closing hand')
-    else:
-        print('Predicted class: opening hand')
+    # transpose to get 16x1 array
+    eeg_data = eeg_data.transpose()
 
+    # check if numpy array is empty
+    if eeg_data.size == 0:
+        continue
+    input = torch.tensor(eeg_data, dtype=torch.float32)
+
+    # get prediction
+    prediction = model(input)
+    if prediction >= 0.5:
+        print(f'Predicted {prediction}: closing hand')
+    else:
+        print(f'Predicted {prediction}: opening hand')
+    
+    # wait for 0.1 seconds
+    time.sleep(0.1)
+
+board.stop_stream()
 board.release_session()
