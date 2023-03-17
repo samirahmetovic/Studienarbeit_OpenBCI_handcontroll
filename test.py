@@ -17,7 +17,7 @@ import datetime
 import os
 import keyboard
 
-
+'''
 params = BrainFlowInputParams()
 params.serial_port = "COM3"
 
@@ -43,3 +43,14 @@ while True:
 
 board.stop_stream()
 board.release_session()
+'''
+
+d1 = {"Name": ["Pankaj", "Lisa"], "ID": [1, 2]}
+d2 = {"Name": "David", "ID": 3}
+df1 = pd.DataFrame(d1, index={1, 2})
+df2 = pd.DataFrame(d2, index={3})
+print(df1)
+print(df2)
+
+df3 = pd.concat([df1, df2], ignore_index=True)
+print(df3)
