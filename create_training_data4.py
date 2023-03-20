@@ -1,6 +1,5 @@
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
-from sklearn.model_selection import train_test_split
 import time
 import os
 from datetime import datetime
@@ -9,10 +8,10 @@ import pandas as pd
 import numpy as np
 
 RECORDING_DURATION = 3  # duration of each recording in seconds
-PAUSE_DURATION = 1  # pause between recordings in seconds
-REPEATS = 2 # 5
-SETS = 2 # 20
-PAUSE_BETWEEN_SETS = 2  # pause between sets in seconds
+PAUSE_DURATION = 2  # pause between recordings in seconds
+REPEATS = 5 # how often should the same hand state be recorded
+SETS = 20 # how many sets should be recorded
+PAUSE_BETWEEN_SETS = 10  # pause between sets in seconds
 TRAINING_SIZE = 0.8 # percentage of data used for training
 
 
@@ -121,7 +120,7 @@ def write_in_df(hand_state, eeg_data):
 
 
 def save_to_file():
-    # get global df_
+    # get global df
     global df
 
     # create directory
