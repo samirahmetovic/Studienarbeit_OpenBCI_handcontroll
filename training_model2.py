@@ -7,19 +7,29 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
+import pandas as pd
 import os
 from nn_model2 import EEGClassifier
 
 
 # Load data from CSV file
 CURR_DIR = os.path.dirname(os.path.abspath("pytorch.py"))
-CURR_DIR = os.path.join(CURR_DIR, "training_data", "right", "eeg_df.csv")
-data = np.loadtxt(CURR_DIR, delimiter=',')
+CURR_DIR = os.path.join(CURR_DIR, "training_data", "right", "eeg_training.csv")
+
+# read data from csv file
+data = pd.read_csv(CURR_DIR, header=None)
+
+input = data.iloc[:, :16].values
+output = data.iloc[:,-1:].values
+
+print(input.shape[2])
+exit()
+print(output.shape)
 
 
 # Split data into inputs (EEG signals) and targets (hand state)
-inputs = torch.tensor(data[:, :-1], dtype=torch.float32)
-targets = torch.tensor(data[:, -1], dtype=torch.float32)
+inputs = torch.tensor(input.transpose(), dtype=torch.float32)
+targets = torch.tensor(output, dtype=torch.float32)
 
 
 # Define hyperparameters
@@ -30,7 +40,7 @@ lr = 0.001
 num_epochs = 200
 
 # Initialize model, loss function, and optimizer
-model = EEGClassifier(input_size, hidden_size, output_size)
+model = EEGClassifier()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=lr)
 
