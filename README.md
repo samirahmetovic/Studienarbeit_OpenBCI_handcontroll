@@ -1,4 +1,4 @@
-![EEG](https://abload.de/img/eeg_c500vjes9.png | width=200)
+<img src=""https://abload.de/img/eeg_c500vjes9.png" width="200px" />
 
 # OpenBCI Handcontrol
 
