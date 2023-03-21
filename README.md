@@ -1,3 +1,5 @@
+![EEG](https://abload.de/img/eeg_c500vjes9.png)
+
 # OpenBCI Handcontrol
 
 This project aims to use OpenBCI to create a hand control system that can be used to control devices or applications by detecting hand gestures from EEG signals. The project consists of three main components: data collection, data preprocessing, and classification.
