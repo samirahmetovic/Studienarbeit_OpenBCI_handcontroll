@@ -7,11 +7,11 @@ import argparse
 import pandas as pd
 import numpy as np
 
-RECORDING_DURATION = 3  # duration of each recording in seconds
-PAUSE_DURATION = 2  # pause between recordings in seconds
+RECORDING_DURATION = 1  # duration of each recording in seconds
+PAUSE_DURATION = 1  # pause between recordings in seconds
 REPEATS = 5 # how often should the same hand state be recorded
-SETS = 20 # how many sets should be recorded
-PAUSE_BETWEEN_SETS = 10  # pause between sets in seconds
+SETS = 1 # how many sets should be recorded
+PAUSE_BETWEEN_SETS = 1  # pause between sets in seconds
 TRAINING_SIZE = 0.8 # percentage of data used for training
 
 
@@ -95,10 +95,10 @@ def record_eeg_data():
     board.stop_stream()
     
     # convert to numpy array EEG Data
-    eeg_data = data[eeg_channels, :]
-    eeg_data = eeg_data / 1000000
+    # eeg_data = data[eeg_channels, :]
+    # eeg_data = eeg_data / 1000000
 
-    return eeg_data
+    return data
 
 def write_in_df(hand_state, eeg_data):
     # get global df_training and df_test
@@ -112,7 +112,8 @@ def write_in_df(hand_state, eeg_data):
         fist = 0
 
     # add open or closed hand to df
-    temp_df[17] = [fist] * len(temp_df)
+    fist_data = [fist] * len(temp_df)
+    temp_df = temp_df.assign(fist=fist_data)
 
     # concat to df bcause append is deprecated
     df = pd.concat([df, temp_df], ignore_index=True)
@@ -124,7 +125,7 @@ def save_to_file():
     global df
 
     # create directory
-    filename = os.path.join(CURR_DIR, f"eeg_{args.data}.csv")
+    filename = os.path.join(CURR_DIR, f"data_{args.data}.csv")
 
     # write to file
     df.to_csv(filename, index=False, mode="a", header=False)

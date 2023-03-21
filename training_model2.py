@@ -23,7 +23,6 @@ input = data.iloc[:, :16].values
 output = data.iloc[:,-1:].values
 
 print(input.shape[2])
-exit()
 print(output.shape)
 
 

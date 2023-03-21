@@ -24,6 +24,18 @@ class EEGClassifier(nn.Module):
         return x
 '''
 
+'''
+CNN Model has multiple convultional layers and max pooling layers
+often consissts of 3-5 convultional layers
+First, ther is the feature layer:
+a convultional layer is an convultional operation followed by a non-linear activation function and pooling operation
+this layers are stacked on top of each other
+
+After that, there is the classifier layer:
+first the feature maps are flattened into a vector
+then a fully connected layer is applied to the vector
+at the and a softmax function is applied to the output of the fully connected layer
+'''
 class EEGClassifier(nn.Module):
     def __init__(self):
         super(EEGClassifier, self).__init__()
