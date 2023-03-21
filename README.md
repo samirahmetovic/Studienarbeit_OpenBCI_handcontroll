@@ -14,4 +14,4 @@ Before feeding the data into the classification model, some preprocessing steps 
 
 # Classification
 
-The classification model used in this project is a convolutional neural network (CNN) implemented using Pytorch. The trained model is then used to classify the EEG signals into hand gestures, such as open and close hand. The model is trained using the preprocessed data, and the accuracy of the model is evaluated using test data.
+The classification model used in this project is a convolutional neural network (CNN) implemented in Pytorch. The trained model is then used to classify the EEG signals into hand gestures, such as open and close hand. The model is trained using the preprocessed data, and the accuracy of the model is evaluated using test data.
