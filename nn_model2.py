@@ -27,7 +27,7 @@ class EEGClassifier(nn.Module):
 '''
 CNN Model has multiple convultional layers and max pooling layers
 often consissts of 3-5 convultional layers
-First, ther is the feature layer:
+First, there is the feature layer:
 a convultional layer is an convultional operation followed by a non-linear activation function and pooling operation
 this layers are stacked on top of each other
 

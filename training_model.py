@@ -13,7 +13,7 @@ from nn_model import EEGClassifier
 
 # Load data from CSV file
 CURR_DIR = os.path.dirname(os.path.abspath("pytorch.py"))
-CURR_DIR = os.path.join(CURR_DIR, "training_data", "right", "eeg_df.csv")
+CURR_DIR = os.path.join(CURR_DIR, "training_data", "right", "eeg_training_backup.csv")
 data = np.loadtxt(CURR_DIR, delimiter=',')
 
 

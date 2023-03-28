@@ -9,7 +9,7 @@ import torch.optim as optim
 import numpy as np
 import pandas as pd
 import os
-from nn_model3 import EEGClassifier
+from nn_model5 import EEGClassifier
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
 
 # get sampling rate
@@ -29,7 +29,7 @@ output = data.iloc[:,-1:].values
 
 # Split data into inputs (EEG signals) and targets (hand state)
 inputs = torch.tensor(input.transpose(), dtype=torch.float32)
-targets = torch.tensor(output, dtype=torch.float32)
+targets = torch.tensor(output, dtype=torch.int64)
 
 
 # Define hyperparameters
@@ -40,7 +40,7 @@ lr = 0.001
 num_epochs = 200
 
 # Initialize model, loss function, and optimizer
-model = EEGClassifier(sampling_rate * duration, input_size=input_size)
+model = EEGClassifier()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=lr)
 

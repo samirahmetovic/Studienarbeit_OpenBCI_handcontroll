@@ -45,12 +45,26 @@ board.stop_stream()
 board.release_session()
 '''
 
-d1 = {"Name": ["Pankaj", "Lisa"], "ID": [1, 2]}
-d2 = {"Name": "David", "ID": 3}
-df1 = pd.DataFrame(d1, index={1, 2})
-df2 = pd.DataFrame(d2, index={3})
-print(df1)
-print(df2)
+sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD)
+print(sampling_rate)
 
-df3 = pd.concat([df1, df2], ignore_index=True)
-print(df3)
+params = BrainFlowInputParams()
+params.serial_port = "COM3"
+
+board = BoardShim(BoardIds.CYTON_DAISY_BOARD, params)
+eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
+
+# create DataFrame
+df1 = pd.DataFrame()
+df2 = pd.DataFrame()
+
+board.prepare_session()
+board.start_stream()
+time.sleep(2)
+data1 = board.get_current_board_data(100)
+data1 = board.get_current_board_data(250)
+board.start_stream()
+board.release_session()
+
+df1.to_csv("test1.csv", index=False)
+df2.to_csv("test2.csv", index=False)
