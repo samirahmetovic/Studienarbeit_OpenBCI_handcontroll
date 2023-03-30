@@ -39,6 +39,11 @@ output_size = 1
 lr = 0.001
 num_epochs = 200
 
+# define bach size
+# bache size is sampling rate times recorded seconds
+batch_size = sampling_rate * duration
+num_batches = len(inputs) // batch_size
+
 # Initialize model, loss function, and optimizer
 model = EEGClassifier()
 criterion = nn.CrossEntropyLoss()
@@ -46,14 +51,22 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 
 # Train the model
 for epoch in range(num_epochs):
-    # Forward pass
-    outputs = model(inputs)
-    loss = criterion(outputs, targets.unsqueeze(1))
 
-    # Backward pass and optimization
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+    # Split data into batches
+    for batch_idx in range(num_batches):
+
+        # batch_inputs = inputs[:, batch_idx * batch_size:(batch_idx + 1) * batch_size].unsqueeze(0)
+        batch_inputs = inputs[:, batch_idx * batch_size:(batch_idx + 1) * batch_size]
+        batch_targets = targets[batch_idx * batch_size:(batch_idx + 1) * batch_size]
+        # Forward pass
+        outputs = model(batch_inputs)
+        # loss = criterion(outputs, batch_targets.unsqueeze(1))
+        loss = criterion(outputs, batch_targets)
+
+        # Backward pass and optimization
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
 
     # Print loss for monitoring training progress
     if (epoch + 1) % 20 == 0:
