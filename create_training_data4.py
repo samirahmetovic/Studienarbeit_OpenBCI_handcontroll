@@ -7,11 +7,11 @@ import argparse
 import pandas as pd
 import numpy as np
 
-RECORDING_DURATION = 1  # duration of each recording in seconds
-PAUSE_DURATION = 1  # pause between recordings in seconds
-REPEATS = 5 # how often should the same hand state be recorded
-SETS = 1 # how many sets should be recorded
-PAUSE_BETWEEN_SETS = 1  # pause between sets in seconds
+RECORDING_DURATION = 3  # duration of each recording in seconds
+PAUSE_DURATION = 3  # pause between recordings in seconds
+REPEATS = 10 # how often should the same hand state be recorded
+SETS = 3 # how many sets should be recorded
+PAUSE_BETWEEN_SETS = 15  # pause between sets in seconds
 TRAINING_SIZE = 0.8 # percentage of data used for training
 
 
@@ -36,6 +36,7 @@ CURR_DIR = os.path.join(CURR_DIR, args.arm)
 
 params = BrainFlowInputParams()
 params.serial_port = args.serial_port
+sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD)
 
 board = BoardShim(BoardIds.CYTON_DAISY_BOARD, params)
 eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
@@ -52,7 +53,11 @@ def countdown_timer(seconds):
 def main():
     
     board.prepare_session()
+    # start streaming for RECORDING_DURATION seconds
+    board.start_stream(RECORDING_DURATION*sampling_rate)
 
+    print("Prepare Session ...")
+    time.sleep(3)
     print("Starting EEG data recording for hand state classification...")
 
     for set_number in range(SETS):
@@ -63,15 +68,15 @@ def main():
 
             # Record data for hand closing
             print("\nRecording data for hand closing...")
-            eeg_data = record_eeg_data()
-            write_in_df("closed", eeg_data)
+            data = record_eeg_data()
+            write_in_df("closed", data)
 
             countdown_timer(PAUSE_DURATION)
 
             # Record data for hand opening
             print("\nRecording data for hand opening...")
-            eeg_data = record_eeg_data()
-            write_in_df("open", eeg_data)
+            data = record_eeg_data()
+            write_in_df("open", data)
 
         # Take a break between sets
         if(set_number != SETS - 1):
@@ -79,6 +84,7 @@ def main():
             time.sleep(PAUSE_BETWEEN_SETS) 
 
     # close board session
+    board.stop_stream()
     board.release_session()
 
     # safe DataFrame with EEG data to file
@@ -86,14 +92,11 @@ def main():
     print("Finished recording EEG data for hand state classification.")
 
 def record_eeg_data():
-    # start streaming for RECORDING_DURATION seconds
-    board.start_stream()
+    # sleep one extra sekond to make sure the board is streaming
     time.sleep(RECORDING_DURATION)
 
     # get data from board
-    data = board.get_board_data()
-    board.stop_stream()
-    
+    data = board.get_current_board_data(RECORDING_DURATION*sampling_rate)
     # convert to numpy array EEG Data
     # eeg_data = data[eeg_channels, :]
     # eeg_data = eeg_data / 1000000

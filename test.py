@@ -49,22 +49,23 @@ sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD)
 print(sampling_rate)
 
 params = BrainFlowInputParams()
-params.serial_port = "COM3"
+params.serial_port = "/dev/cu.usbserial-DM03H72A"
 
 board = BoardShim(BoardIds.CYTON_DAISY_BOARD, params)
 eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
 
-# create DataFrame
-df1 = pd.DataFrame()
-df2 = pd.DataFrame()
-
 board.prepare_session()
-board.start_stream()
-time.sleep(2)
-data1 = board.get_current_board_data(100)
-data1 = board.get_current_board_data(250)
-board.start_stream()
+board.start_stream(375)
+time.sleep(4)
+data1 = board.get_current_board_data(375)
+time.sleep(1)
+data2 = board.get_current_board_data(375)
+board.stop_stream()
 board.release_session()
+
+# create DataFrame
+df1 = pd.DataFrame(data1.transpose())
+df2 = pd.DataFrame(data2.transpose())
 
 df1.to_csv("test1.csv", index=False)
 df2.to_csv("test2.csv", index=False)
