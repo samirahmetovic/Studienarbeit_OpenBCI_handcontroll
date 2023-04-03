@@ -15,7 +15,6 @@ from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, Brai
 # get sampling rate
 sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD)
 duration = 3
-
 # Load data from CSV file
 CURR_DIR = os.path.dirname(os.path.abspath("pytorch.py"))
 CURR_DIR = os.path.join(CURR_DIR, "training_data", "right", "eeg_training_backup.csv")
@@ -29,7 +28,9 @@ output = data.iloc[:,-1:].values
 
 # Split data into inputs (EEG signals) and targets (hand state)
 inputs = torch.tensor(input.transpose(), dtype=torch.float32)
-targets = torch.tensor(output, dtype=torch.int64)
+#targets = torch.tensor(output, dtype=torch.int64)
+# targets = torch.tensor(output.transpose(), dtype=torch.float32)
+targets = torch.tensor(output, dtype=torch.float32)
 
 
 # Define hyperparameters
@@ -42,7 +43,7 @@ num_epochs = 200
 # define bach size
 # bache size is sampling rate times recorded seconds
 batch_size = sampling_rate * duration
-num_batches = len(inputs) // batch_size
+num_batches = inputs.shape[1] // batch_size
 
 # Initialize model, loss function, and optimizer
 model = EEGClassifier()
@@ -51,10 +52,8 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 
 # Train the model
 for epoch in range(num_epochs):
-
     # Split data into batches
     for batch_idx in range(num_batches):
-
         # batch_inputs = inputs[:, batch_idx * batch_size:(batch_idx + 1) * batch_size].unsqueeze(0)
         batch_inputs = inputs[:, batch_idx * batch_size:(batch_idx + 1) * batch_size]
         batch_targets = targets[batch_idx * batch_size:(batch_idx + 1) * batch_size]
@@ -68,12 +67,13 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
 
-    # Print loss for monitoring training progress
-    if (epoch + 1) % 20 == 0:
-        print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
+        # Print loss for monitoring training progress
+        if (epoch + 1) % 20 == 0 and batch_idx == 0:
+            print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
 
 
 # safe model to file
+print("saving model")
 torch.save(model.state_dict(), "model_cnn.pt")
 
 # Test the model on a new input
