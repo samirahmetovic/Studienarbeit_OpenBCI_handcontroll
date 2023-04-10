@@ -9,8 +9,8 @@ import numpy as np
 
 RECORDING_DURATION = 3  # duration of each recording in seconds
 PAUSE_DURATION = 3  # pause between recordings in seconds
-REPEATS = 10 # how often should the same hand state be recorded
-SETS = 3 # how many sets should be recorded
+REPEATS = 5 # how often should the same hand state be recorded
+SETS = 1 # how many sets should be recorded
 PAUSE_BETWEEN_SETS = 15  # pause between sets in seconds
 TRAINING_SIZE = 0.8 # percentage of data used for training
 
@@ -58,7 +58,9 @@ def main():
 
     print("Prepare Session ...")
     time.sleep(3)
+    record_eeg_data()
     print("Starting EEG data recording for hand state classification...")
+    time.sleep(1)
 
     for set_number in range(SETS):
         print(f"\nSet {set_number + 1} of {SETS}")

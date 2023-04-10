@@ -44,7 +44,7 @@ while True:
 board.stop_stream()
 board.release_session()
 '''
-
+'''
 sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD)
 print(sampling_rate)
 
@@ -69,3 +69,18 @@ df2 = pd.DataFrame(data2.transpose())
 
 df1.to_csv("test1.csv", index=False)
 df2.to_csv("test2.csv", index=False)
+'''
+
+def test(np_array):
+    np_array = np_array + 1
+    return np_array
+
+
+
+arr = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+
+test2 = test(arr)
+
+print(arr)
+print(test2)
+print(arr)
