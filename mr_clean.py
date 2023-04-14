@@ -52,7 +52,7 @@ sfreq = BoardShim.get_sampling_rate(BoardIds.SYNTHETIC_BOARD.value)
 info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
 
 # get data
-df = pd.read_csv(os.path.join(filepath, "data_training_samir.csv"), header=None)
+df = pd.read_csv(os.path.join(filepath, "data_training_marcel1.csv"), header=None)
 # transpose data back to original format
 data = df.values.transpose()
 print(data.shape)
@@ -86,32 +86,40 @@ plt.savefig('psd_bandpass.png')
 # ------------------ Wavelet transformation / Fast Fourier transformation ------------------
 
 # Create an empty list to store the wavelet coefficients for all channels
-all_wavelet_coeffs = []
+all_df = pd.DataFrame()
 
-# only neede channels
-needed_eeg_channels = [3, 4, 9, 10, 11, 12]
 
 # calcute batch
 batch_size = REC_DURATION * sampling_rate
 num_batches = data.shape[1] // batch_size
 
-for count, channel in enumerate(needed_eeg_channels):
+for batch_idx in range(num_batches):
+    
+    batch_df = pd.DataFrame()
 
-    for batch_idx in range(num_batches):
+    batch_target = data[-1,batch_idx*batch_size]
+
+    for idx, channel in enumerate(eeg_channels):
+
         # Get the data for the current channel
         batch_inputs = data[channel:channel+1, batch_idx * batch_size:(batch_idx + 1) * batch_size]
-        # print(batch_inputs.shape)
 
-        wavelet_coeffs, lengths = DataFilter.perform_wavelet_transform(batch_inputs, WaveletTypes.DB5, 3)
+        # print(batch_inputs.shape)
+        wavelet_coeffs, lengths = DataFilter.perform_wavelet_transform(batch_inputs[0], WaveletTypes.DB5, 3)
         # pywt.dwt(data[channel], 'db5', 'smooth')
-        print("Wavelet coeffs for channel %d:" % channel)
         # print(wavelet_coeffs)
-        print(wavelet_coeffs.shape, lengths)
         # app_coefs = wavelet_coeffs[0: lengths[0]]
         # detailed_coeffs_first_block = wavelet_coeffs[lengths[0]: lengths[1]]
-        all_wavelet_coeffs.append(wavelet_coeffs)
+        batch_df[idx] = wavelet_coeffs
         # fft_data = DataFilter.perform_fft(data[channel], WindowOperations.NO_WINDOW.value)
 
+    batch_df[17] = [batch_target] * 400
+
+    all_df = pd.concat([all_df, batch_df], ignore_index=True)
+
+print(all_df)
+print(all_df.shape)
+exit()
 # Combine the wavelet coefficients for all channels into a single array
 all_wavelet_coeffs_array = np.array(all_wavelet_coeffs)
 
