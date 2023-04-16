@@ -17,8 +17,8 @@ import mne
 import seaborn as sns
 import pywt
 
-def to_eeg(data):
-    eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
+def to_eeg(data, eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)):
+    # eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
     eeg_data = data[eeg_channels, :]
     eeg_data = eeg_data / 1000000  # BrainFlow returns uV, convert to V for MNE
     return eeg_data
@@ -52,7 +52,8 @@ sfreq = BoardShim.get_sampling_rate(BoardIds.SYNTHETIC_BOARD.value)
 info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
 
 # get data
-df = pd.read_csv(os.path.join(filepath, "data_training_marcel1.csv"), header=None)
+filename = "data_training_marcel1"
+df = pd.read_csv(os.path.join(filepath, f"{filename}.csv"), header=None)
 # transpose data back to original format
 data = df.values.transpose()
 print(data.shape)
@@ -86,7 +87,7 @@ plt.savefig('psd_bandpass.png')
 # ------------------ Wavelet transformation / Fast Fourier transformation ------------------
 
 # Create an empty list to store the wavelet coefficients for all channels
-all_df = pd.DataFrame()
+wavelet = pd.DataFrame()
 
 
 # calcute batch
@@ -115,16 +116,9 @@ for batch_idx in range(num_batches):
 
     batch_df[17] = [batch_target] * 400
 
-    all_df = pd.concat([all_df, batch_df], ignore_index=True)
+    wavelet = pd.concat([wavelet, batch_df], ignore_index=True)
 
-print(all_df)
-print(all_df.shape)
-exit()
-# Combine the wavelet coefficients for all channels into a single array
-all_wavelet_coeffs_array = np.array(all_wavelet_coeffs)
-
-df = pd.DataFrame(all_wavelet_coeffs_array.transpose())
-df.to_csv("wavelet.csv", index=False, header=False)
+print(wavelet.shape)
 
 # np.savetxt("text.csv", all_wavelet_coeffs_array, delimiter=",")
 # Reshape the combined wavelet coefficients to match the input shape of your model
@@ -134,10 +128,9 @@ df.to_csv("wavelet.csv", index=False, header=False)
 
 # print(input_shape)
 # print(reshaped_wavelet_coeffs)
-print(all_wavelet_coeffs_array)
 
 # plot after wavelet transformation
-raw = mne.io.RawArray(to_eeg(data), info)
+raw = mne.io.RawArray(to_eeg(wavelet.values.transpose()), info)
 raw.plot_psd(average=True)
 plt.savefig('psd_wavelet.png')
 
@@ -165,7 +158,26 @@ for channel in eeg_channels:
 
 # ------------------ Delete not used EEG Pins ------------------
 # TODO: Delete not used EEG Pins
-needed_eeg_channels = [3, 4, 9, 10, 11, 12]
+needed_eeg_channels = [3, 4, 9, 10, 11, 12, 17]
 
-needed_data = np.array(data[needed_eeg_channels])
+cleaned_df = wavelet[needed_eeg_channels]
 
+cleaned_df.to_csv(os.path.join(filepath, f"{filename}-cleaned.csv"), header=None, index=False)
+'''
+Plot dont work with less EEG Channels
+
+
+# change info
+# change Channel typed to length of needed_eeg_channels
+ch_types = ['eeg'] * len(needed_eeg_channels)
+ch_names = BoardShim.get_eeg_names(BoardIds.SYNTHETIC_BOARD.value)
+# change Channel names to needed_eeg_channels
+ch_names = [ch_names[i-1] for i in needed_eeg_channels]
+sfreq = BoardShim.get_sampling_rate(BoardIds.SYNTHETIC_BOARD.value)
+info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=needed_eeg_channels)
+
+raw = mne.io.RawArray(to_eeg(wavelet.values.transpose(), eeg_channels=needed_eeg_channels), info)
+raw.plot_psd(average=True)
+plt.savefig('psd_finished.png')
+
+'''
