@@ -52,7 +52,7 @@ sfreq = BoardShim.get_sampling_rate(BoardIds.SYNTHETIC_BOARD.value)
 info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
 
 # get data
-filename = "data_training_marcel1"
+filename = "data_test2"
 df = pd.read_csv(os.path.join(filepath, f"{filename}.csv"), header=None)
 # transpose data back to original format
 data = df.values.transpose()
