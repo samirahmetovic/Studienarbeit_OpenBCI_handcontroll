@@ -9,6 +9,7 @@ from brainflow.board_shim import BoardShim, BoardIds
 from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WaveletTypes, NoiseEstimationLevelTypes, \
     WaveletExtensionTypes, ThresholdTypes, WaveletDenoisingTypes, WindowOperations
 import time
+import argparse
 
 import matplotlib
 matplotlib.use('Agg')
@@ -22,6 +23,13 @@ def to_eeg(data, eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_
     eeg_data = data[eeg_channels, :]
     eeg_data = eeg_data / 1000000  # BrainFlow returns uV, convert to V for MNE
     return eeg_data
+
+
+# ------------------ Argparse Data ------------------
+# configure argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('--f', type=str, help='filename', required=True, default='')
+args = parser.parse_args()
 
 # ------------------ Bandpass filter ------------------
 
@@ -52,7 +60,7 @@ sfreq = BoardShim.get_sampling_rate(BoardIds.SYNTHETIC_BOARD.value)
 info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
 
 # get data
-filename = "data_test2"
+filename = args.f
 df = pd.read_csv(os.path.join(filepath, f"{filename}.csv"), header=None)
 # transpose data back to original format
 data = df.values.transpose()
@@ -162,7 +170,7 @@ needed_eeg_channels = [3, 4, 9, 10, 11, 12, 17]
 
 cleaned_df = wavelet[needed_eeg_channels]
 
-cleaned_df.to_csv(os.path.join(filepath, f"{filename}-cleaned.csv"), header=None, index=False)
+cleaned_df.to_csv(os.path.join(filepath, "cleaned", f"{filename}-cleaned.csv"), header=None, index=False)
 '''
 Plot dont work with less EEG Channels
 

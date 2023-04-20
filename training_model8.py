@@ -9,7 +9,7 @@ import torch.optim as optim
 import numpy as np
 import pandas as pd
 import os
-from nn_model7 import EEGClassifier
+from nn_model8 import EEGClassifier
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
 import glob
 

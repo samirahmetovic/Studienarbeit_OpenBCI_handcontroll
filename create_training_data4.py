@@ -9,7 +9,7 @@ import numpy as np
 
 RECORDING_DURATION = 3  # duration of each recording in seconds
 PAUSE_DURATION = 3  # pause between recordings in seconds
-REPEATS = 5 # how often should the same hand state be recorded
+REPEATS = 10 # how often should the same hand state be recorded
 SETS = 1 # how many sets should be recorded
 PAUSE_BETWEEN_SETS = 15  # pause between sets in seconds
 TRAINING_SIZE = 0.8 # percentage of data used for training

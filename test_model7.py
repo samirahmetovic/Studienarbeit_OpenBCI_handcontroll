@@ -9,6 +9,7 @@ import argparse
 import keyboard
 import pandas as pd
 import os
+import numpy as np
 
 # BCI Data
 sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD)
@@ -21,7 +22,7 @@ model.eval()
 
 # directory
 CURR_DIR = os.path.dirname(os.path.abspath("pytorch.py"))
-file = os.path.join(CURR_DIR, "training_data", "right", "data_test2-cleaned.csv")
+file = os.path.join(CURR_DIR, "training_data", "right", "cleaned", "data_training_marcel1-cleaned.csv")
 
 data = pd.read_csv(file, header=None)
 
@@ -60,12 +61,23 @@ for batch_idx in range(num_batches):
     batch_targets = targets[batch_idx * batch_size:(batch_idx + 1) * batch_size]
 
     prediction = model(batch_inputs)
-    predicted_class = torch.argmax(prediction, dim=1)
+    predicted_class = (prediction >= 0.5).int().numpy()
 
+    predicted_class = predicted_class.transpose()
+    
+    unique_elements, counts = np.unique(predicted_class, return_counts=True)
+    print(unique_elements, counts)
+    '''
     for idx, pred in enumerate(predicted_class):
-        if pred == 1:
+        print(idx)
+        if pred == [1]:
             print(f'Predicted {pred}: closing hand. Real value: {batch_targets[idx]}')
         else:
             print(f'Predicted {pred}: opening hand. Real value: {batch_targets[idx]}')
+      ''' 
+    if 1 == 1:
+        print(f'Predicted {1}: closing hand. Real value: {batch_targets[0]}')
+    else:
+        print(f'Predicted {1}: opening hand. Real value: {batch_targets[0]}')
 
     time.sleep(0.5)
