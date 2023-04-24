@@ -59,9 +59,10 @@ batch_size = batch_size + 25
 num_batches = inputs.shape[1] // batch_size
 
 # Initialize model, loss function, and optimizer
-model = EEGClassifier()
-#criterion = nn.CrossEntropyLoss()
+model = EEGClassifier(print_shapes=False)
+# criterion = nn.CrossEntropyLoss()
 criterion = nn.BCEWithLogitsLoss()
+# criterion = nn.BCELoss()
 # criterion = nn.NLLLoss()
 optimizer = optim.Adam(model.parameters(), lr=lr)
 

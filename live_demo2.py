@@ -38,6 +38,7 @@ def update_hand_status():
     prediction = model(input)
     
     print(prediction.shape)
+    print(prediction)
 
     if prediction >= 0.5:
         label.config(text="Closing hand")

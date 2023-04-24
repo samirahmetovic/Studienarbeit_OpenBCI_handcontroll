@@ -76,4 +76,7 @@ class EEGClassifier(nn.Module):
         x = self.linear1(x)
         if print_shapes:
             print(x.shape)
+        x = torch.sigmoid(x)
+        if print_shapes:
+            print(x.shape)
         return x
