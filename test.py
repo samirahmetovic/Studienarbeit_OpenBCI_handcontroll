@@ -4,7 +4,7 @@
 
 
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
-from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
+from brainflow.data_filter import DataFilter, FilterTypes, AggOperations, WindowOperations
 import argparse
 import time
 import pandas as pd
@@ -17,70 +17,47 @@ import datetime
 import os
 import keyboard
 
-'''
-params = BrainFlowInputParams()
-params.serial_port = "COM3"
 
-
-board = BoardShim(BoardIds.CYTON_DAISY_BOARD, params)
-eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
-board.prepare_session()
-board.start_stream()
-
-
-# data = board.get_current_board_data (256) # get latest 256 packages or less, doesnt remove them from internal buffer
-while True:
-    if keyboard.is_pressed('q'):
-        break
-    # data = board.get_current_board_data(BoardShim.get_sampling_rate(board.get_board_id()))  # get all data and remove it from internal buffer
-    data = board.get_current_board_data(1)
-    eeg_data = data[eeg_channels, :]
+def to_eeg(data, eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)):
+    # eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
+    # eeg_data = data[eeg_channels, :]
+    eeg_data = data
     eeg_data = eeg_data / 1000000  # BrainFlow returns uV, convert to V for MNE
-    print(eeg_data)
-    eeg_data = eeg_data.transpose()
-    print(eeg_data)
-    time.sleep(0.1)
+    return eeg_data
 
-board.stop_stream()
-board.release_session()
-'''
-'''
-sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD)
-print(sampling_rate)
+# get filename
+CURRDIR = os.path.dirname(os.path.abspath("create_training_data.py"))
+filepath = os.path.join(CURRDIR, "training_data", "right")
+# safe files
+PLOT_DIR = os.path.join(CURRDIR, "plots")
 
-params = BrainFlowInputParams()
-params.serial_port = "/dev/cu.usbserial-DM03H72A"
-
-board = BoardShim(BoardIds.CYTON_DAISY_BOARD, params)
+# Board specific data
+REC_DURATION = 3  # duration of each recording in seconds
+sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD.value)
+filter_type = FilterTypes.BUTTERWORTH.value  # Choose the filter type
 eeg_channels = BoardShim.get_eeg_channels(BoardIds.CYTON_DAISY_BOARD.value)
 
-board.prepare_session()
-board.start_stream(375)
-time.sleep(4)
-data1 = board.get_current_board_data(375)
-time.sleep(1)
-data2 = board.get_current_board_data(375)
-board.stop_stream()
-board.release_session()
-
-# create DataFrame
-df1 = pd.DataFrame(data1.transpose())
-df2 = pd.DataFrame(data2.transpose())
-
-df1.to_csv("test1.csv", index=False)
-df2.to_csv("test2.csv", index=False)
-'''
-
-def test(np_array):
-    np_array = np_array + 1
-    return np_array
+# Creating MNE objects from brainflow data arrays
+ch_types = ['eeg'] * len(eeg_channels)
+ch_names = BoardShim.get_eeg_names(BoardIds.SYNTHETIC_BOARD.value)
+sfreq = BoardShim.get_sampling_rate(BoardIds.SYNTHETIC_BOARD.value)
+info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
 
 
+df = pd.read_csv(os.path.join(filepath, f"data_training_marcel1 copy.csv"), header=None)
+# transpose data back to original format
+data = df.values.transpose()
 
-arr = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+fft_data = np.ndarray((16, 3563))
+for count, channel in enumerate(eeg_channels):
+    fft_data[count] = DataFilter.perform_fft(data[channel], WindowOperations.NO_WINDOW.value)
+    # fft_data[count] = np.fft.fft(data[channel])
+    # fft_data = np.fft.fft(data[channel])
+    print("FFT shape")
+    print(fft_data.shape)
 
-test2 = test(arr)
-
-print(arr)
-print(test2)
-print(arr)
+plt.plot(fft_data)
+plt.show()
+# raw = mne.io.RawArray(to_eeg(fft_data, eeg_channels=16), info)
+# raw.plot_psd(average=True)
+plt.savefig('psd_fft.png')
