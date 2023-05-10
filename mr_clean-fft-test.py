@@ -42,7 +42,6 @@ ORDER = 4  # Filter order
 # get filename
 CURRDIR = os.path.dirname(os.path.abspath("create_training_data.py"))
 filepath = os.path.join(CURRDIR, "training_data", "right")
-plot_path = os.path.join(CURRDIR, "plots", "fft")
 # safe files
 PLOT_DIR = os.path.join(CURRDIR, "plots")
 
@@ -63,6 +62,7 @@ filename = args.f
 df = pd.read_csv(os.path.join(filepath, f"{filename}.csv"), header=None)
 # transpose data back to original format
 data = df.values.transpose()
+print(data.shape)
 
 
 # plot before bandpass filter
@@ -85,10 +85,6 @@ for channel in eeg_channels:
 
 
 # ------------------ Delete not used EEG Pins ------------------
-
-needed_eeg_channels = [3, 4, 9, 10, 11, 12, 32]
-
-data = np.take(data, needed_eeg_channels, 0)
 '''
 # ------------------ Fast Fourier transformation ------------------
 
@@ -130,54 +126,30 @@ print(fft.shape)
 # ------------------ Fast Fourier transformation ------------------
 
 def fft_abs(data):
-    fft_data = np.fft.fft(data, axis=1)
+    fft_data = np.fft.fft(data)
     fft_data_abs = np.abs(fft_data)
     return fft_data_abs
 
-# calcute batch
-batch_size = REC_DURATION * sampling_rate
-num_batches = data.shape[1] // batch_size
+data = data[:,:256]
+print(data.shape)
 
-#delete last value fo every second dimension
-targets = data[-1, :]
-data = data[:-1,:]
+fft_data = []
+for count, channel in enumerate(eeg_channels):
+    fft_data.append(DataFilter.perform_fft(data[channel], WindowOperations.NO_WINDOW.value))
+    
+fft_data = np.array(fft_data)
 
-
-batches = np.array_split(data, num_batches, axis=1)
-
-tmp_eeg = [0, 1, 2, 3, 4, 5]
-
-fft_abs_batches = [fft_abs(to_eeg(batch, eeg_channels = tmp_eeg)) for batch in batches]
-
-#fft_abs_batches = [fft_abs(batch) for batch in batches]
-
+print(fft_data.shape)
 # Creating MNE objects from brainflow data arrays
-ch_types = ['eeg'] * len(tmp_eeg)
-ch_names = ['eeg'] * len(tmp_eeg)
+ch_types = ['eeg'] * len(eeg_channels)
+ch_names = BoardShim.get_eeg_names(BoardIds.SYNTHETIC_BOARD.value)
 sfreq = BoardShim.get_sampling_rate(BoardIds.SYNTHETIC_BOARD.value)
 info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_types)
 
+raw = mne.io.RawArray(fft_data, info)
+raw.plot_psd(average=True)
+plt.savefig(f'psd-fft.png')
 
-print(len(fft_abs_batches))
-for idx, fft_abs_batch in enumerate(fft_abs_batches):
-    plt.figure()
-    plt.title(f'Batch {idx+1}')
-    plt.xlabel('Frequency [Hz]')
-    plt.ylabel('Amplitude')
-
-    # plt.plot(fft_abs_batch[idx])
-    # sns.lineplot(fft_abs_batch[idx])
-    raw = mne.io.RawArray(fft_abs_batch, info)
-    raw.compute_psd(fmin=2.0, fmax=15.0).plot()
-
-    plt.savefig(os.path.join(plot_path, f"plot_fft_batch{idx}.png"))
-    print("saved")
-
-# build data array back and safe it in csv
-data = np.concatenate(batches, axis=1)
-data = np.concatenate((data, targets.reshape(1, -1)), axis=0)
-df = pd.DataFrame(data.transpose())
-df.to_csv(os.path.join(filepath, "cleaned", f"{filename}-fft.csv"))
 # np.savetxt("text.csv", all_wavelet_coeffs_array, delimiter=",")
 # Reshape the combined wavelet coefficients to match the input shape of your model
 # Determine the shape based on your model's requirements
