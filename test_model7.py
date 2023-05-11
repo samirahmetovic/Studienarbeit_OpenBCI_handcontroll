@@ -61,6 +61,7 @@ for batch_idx in range(num_batches):
     batch_targets = targets[batch_idx * batch_size:(batch_idx + 1) * batch_size]
 
     prediction = model(batch_inputs)
+    print("Preeiction", prediction)
     predicted_class = (prediction >= 0.5).int().numpy()
 
     predicted_class = predicted_class.transpose()

@@ -42,7 +42,8 @@ class EEGClassifier(nn.Module):
             nn.Linear(400, 800),
             nn.Linear(800, 200),
             nn.Linear(200, num_classes),
-            # nn.LogSoftmax(dim=1)
+            nn.LogSoftmax(dim=1)
+            # nn.Sigmoid()
             )
 
     def forward(self, x):

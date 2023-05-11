@@ -177,7 +177,7 @@ for idx, fft_abs_batch in enumerate(fft_abs_batches):
 data = np.concatenate(batches, axis=1)
 data = np.concatenate((data, targets.reshape(1, -1)), axis=0)
 df = pd.DataFrame(data.transpose())
-df.to_csv(os.path.join(filepath, "cleaned", f"{filename}-fft.csv"))
+df.to_csv(os.path.join(filepath, "cleaned", "fft", f"{filename}-fft.csv"))
 # np.savetxt("text.csv", all_wavelet_coeffs_array, delimiter=",")
 # Reshape the combined wavelet coefficients to match the input shape of your model
 # Determine the shape based on your model's requirements
