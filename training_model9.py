@@ -9,7 +9,7 @@ import torch.optim as optim
 import numpy as np
 import pandas as pd
 import os
-from nn_model7 import EEGClassifier
+from nn_model9 import EEGNET
 from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
 import glob
 import matplotlib.pyplot as plt
@@ -27,7 +27,7 @@ data = pd.DataFrame()
 
 # get all files in folder starting with data_training
 # file_list = glob.glob( os.path.join(CURR_DIR, 'data_training*'))
-file_list = glob.glob( os.path.join(CURR_DIR, 'data_training_marcel1*'))
+file_list = glob.glob( os.path.join(CURR_DIR, 'data_training*'))
 # read all files and append to df
 for file in file_list:
     tmpdf = pd.read_csv(file, header=None)
@@ -62,7 +62,7 @@ batch_size = batch_size + 25
 num_batches = inputs.shape[1] // batch_size
 
 # Initialize model, loss function, and optimizer
-model = EEGClassifier(print_shapes=False)
+model = EEGNET(1, 0.5, 1)
 # criterion = nn.CrossEntropyLoss()
 criterion = nn.BCEWithLogitsLoss()
 # criterion = nn.BCELoss()
@@ -82,10 +82,15 @@ for epoch in range(num_epochs):
         # batch_inputs = inputs[:, batch_idx * batch_size:(batch_idx + 1) * batch_size].unsqueeze(0)
         batch_inputs = inputs[:, batch_idx * batch_size:(batch_idx + 1) * batch_size]
         batch_targets = targets[batch_idx * batch_size:(batch_idx + 1) * batch_size]
+        first_target = batch_targets[0].unsqueeze(0)
+
+        # reshape
+        reshaped_data = batch_inputs.view(1, 6, 1, 400)
+
         # Forward pass
-        outputs = model(batch_inputs)
+        outputs = model(reshaped_data)
         # loss = criterion(outputs, batch_targets.unsqueeze(1))
-        loss = criterion(outputs, batch_targets)
+        loss = criterion(outputs, first_target)
 
         # safe loss to list
         loss_list.append(loss.item())
@@ -116,7 +121,7 @@ plt.savefig("loss.png")
 
 # safe model to file
 print("saving model")
-torch.save(model.state_dict(), "model_cnn_wavelet.pt")
+torch.save(model.state_dict(), "EEGNET.pt")
 
 # Test the model on a new input
 #test_input = torch.tensor([[0.5, 0.6, 0.4, 0.2, 0.1, 0.7]])

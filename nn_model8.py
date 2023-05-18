@@ -46,6 +46,3 @@ class EEGClassifier(nn.Module):
         x = self.fc3(x)
         # x = nn.Softmax(dim=1)(x)
         return x
-
-# Erstellen einer Instanz des Modells
-model = EEGClassifier()
