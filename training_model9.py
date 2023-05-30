@@ -20,7 +20,10 @@ sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD)
 duration = 3
 # Load data from CSV file
 CURR_DIR = os.path.dirname(os.path.abspath("pytorch.py"))
+MODEL_DIR = os.path.join(CURR_DIR, "models")
 CURR_DIR = os.path.join(CURR_DIR, "training_data", "right", "cleaned")
+
+MODEL_NAME = "EEGNET_9.pt"
 
 # create empty df
 data = pd.DataFrame()
@@ -56,7 +59,7 @@ num_epochs = 200
 # define bach size
 # bache size is sampling rate times recorded seconds
 batch_size = sampling_rate * duration
-# +25 due to wavelet transformation
+# +25 due to wavelet transformation from Brainflow Library
 batch_size = batch_size + 25
 
 num_batches = inputs.shape[1] // batch_size
@@ -77,6 +80,10 @@ model.train()
 print("Model training started...")
 for epoch in range(num_epochs):
     train_corrects = 0
+
+    # safe loss for each batch
+    loss_for_batch = []
+
     # Split data into batches
     for batch_idx in range(num_batches):
         # batch_inputs = inputs[:, batch_idx * batch_size:(batch_idx + 1) * batch_size].unsqueeze(0)
@@ -93,7 +100,7 @@ for epoch in range(num_epochs):
         loss = criterion(outputs, first_target)
 
         # safe loss to list
-        loss_list.append(loss.item())
+        loss_for_batch.append(loss.item())
 
         # safe accuracy to list
         # preds = torch.sigmoid(output) >= 0.5
@@ -111,17 +118,20 @@ for epoch in range(num_epochs):
         if batch_idx % 400 == 0:
             print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
 
+    # safe loss to list
+    loss_list.append(np.mean(loss_for_batch))
+
 # Plot loss over time
 print("plotting...")
 sns.lineplot(x=list(range(1, len(loss_list)+1)), y=loss_list)
-plt.savefig("loss.png")
+plt.savefig(f"loss_{MODEL_NAME}.png")
 
 # sns.lineplot(x=list(range(1, len(acc_list)+1)), y=acc_list)
 # plt.savefig("accuracy.png")
 
 # safe model to file
 print("saving model")
-torch.save(model.state_dict(), "EEGNET.pt")
+torch.save(model.state_dict(), os.path.join(MODEL_DIR, MODEL_NAME))
 
 # Test the model on a new input
 #test_input = torch.tensor([[0.5, 0.6, 0.4, 0.2, 0.1, 0.7]])

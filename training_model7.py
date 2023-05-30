@@ -20,7 +20,10 @@ sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD)
 duration = 3
 # Load data from CSV file
 CURR_DIR = os.path.dirname(os.path.abspath("pytorch.py"))
+MODEL_DIR = os.path.join(CURR_DIR, "models")
 CURR_DIR = os.path.join(CURR_DIR, "training_data", "right", "cleaned")
+
+MODEL_NAME = "CNN_WAVELET_7.pt"
 
 # create empty df
 data = pd.DataFrame()
@@ -109,14 +112,14 @@ for epoch in range(num_epochs):
 # Plot loss over time
 print("plotting...")
 sns.lineplot(x=list(range(1, len(loss_list)+1)), y=loss_list)
-plt.savefig("loss.png")
+plt.savefig(f"loss_{MODEL_NAME}.png")
 
 # sns.lineplot(x=list(range(1, len(acc_list)+1)), y=acc_list)
 # plt.savefig("accuracy.png")
 
 # safe model to file
 print("saving model")
-torch.save(model.state_dict(), "model_cnn_wavelet.pt")
+torch.save(model.state_dict(), os.path.join(MODEL_DIR, MODEL_NAME))
 
 # Test the model on a new input
 #test_input = torch.tensor([[0.5, 0.6, 0.4, 0.2, 0.1, 0.7]])
