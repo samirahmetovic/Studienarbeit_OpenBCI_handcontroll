@@ -33,9 +33,6 @@ class EEGClassifier(nn.Module):
             nn.Conv1d(in_channels=96, out_channels=400, kernel_size=3, stride=7),
             nn.BatchNorm1d(2, affine=False),
             nn.LeakyReLU())
-            
-        '''self.pool4 = nn.Sequential(
-            nn.MaxPool1d(kernel_size=3, stride=3))'''
         self.linear1 = nn.Sequential(
             # nn.Linear(164, num_classes),
             nn.Linear(2, 400),
@@ -43,8 +40,7 @@ class EEGClassifier(nn.Module):
             nn.Linear(800, 200),
             nn.Linear(200, num_classes),
             # nn.LogSoftmax(dim=1)
-            nn.Sigmoid()
-            )
+            nn.Sigmoid())
 
     def forward(self, x):
         # Bool of printing shapes

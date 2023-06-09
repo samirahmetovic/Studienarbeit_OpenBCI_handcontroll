@@ -15,9 +15,13 @@ import numpy as np
 sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD)
 duration = 3
 
+MODEL_NAME = "CNN_WAVELET_7.pt"
+
 # get the trained Pytorch NN model
+CURR_DIR = os.path.dirname(os.path.abspath("pytorch.py"))
+MODEL_DIR = os.path.join(CURR_DIR, "models", MODEL_NAME)
 model = EEGClassifier()
-model.load_state_dict(torch.load('model_cnn_wavelet.pt'))
+model.load_state_dict(torch.load(MODEL_DIR))
 model.eval()
 
 # directory
@@ -55,19 +59,15 @@ targets = torch.tensor(output, dtype=torch.float32)
     
     time.sleep(0.5)'''
 
+hits = 0
+misses = 0
 
 for batch_idx in range(num_batches):
     batch_inputs = inputs[:, batch_idx * batch_size:(batch_idx + 1) * batch_size]
     batch_targets = targets[batch_idx * batch_size:(batch_idx + 1) * batch_size]
 
     prediction = model(batch_inputs)
-    print("Preeiction", prediction)
-    predicted_class = (prediction >= 0.5).int().numpy()
-
-    predicted_class = predicted_class.transpose()
-    
-    unique_elements, counts = np.unique(predicted_class, return_counts=True)
-    print(unique_elements, counts)
+    predicted_class = prediction.mean().int().item()
     '''
     for idx, pred in enumerate(predicted_class):
         print(idx)
@@ -76,9 +76,13 @@ for batch_idx in range(num_batches):
         else:
             print(f'Predicted {pred}: opening hand. Real value: {batch_targets[idx]}')
       ''' 
-    if 1 == 1:
-        print(f'Predicted {1}: closing hand. Real value: {batch_targets[0]}')
+    if predicted_class == batch_targets[0]:
+        print(f'Prediction correct: {batch_targets[0].int().item()}')
+        hits += 1
     else:
-        print(f'Predicted {1}: opening hand. Real value: {batch_targets[0]}')
+        print(f'Predicted wrong: {batch_targets[0].int().item()}')
+        misses += 1
 
-    time.sleep(0.5)
+print("*****************************************")
+print(f"Hits: {hits}, Misses: {misses}")
+print(f"Accuracy: {hits / (hits + misses)}")

@@ -14,6 +14,7 @@ from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, Brai
 import glob
 import matplotlib.pyplot as plt
 import seaborn as sns
+import time
 
 # get sampling rate
 sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD)
@@ -30,7 +31,7 @@ data = pd.DataFrame()
 
 # get all files in folder starting with data_training
 # file_list = glob.glob( os.path.join(CURR_DIR, 'data_training*'))
-file_list = glob.glob( os.path.join(CURR_DIR, 'data_training_marcel1*'))
+file_list = glob.glob( os.path.join(CURR_DIR, 'data_training*'))
 # read all files and append to df
 for file in file_list:
     tmpdf = pd.read_csv(file, header=None)
@@ -78,8 +79,16 @@ acc_list = []
 # Train the model
 model.train()
 print("Model training started...")
+
+# start time
+start_time = time.time()
+
 for epoch in range(num_epochs):
     train_corrects = 0
+
+    # safe loss for each batch
+    loss_for_batch = []
+
     # Split data into batches
     for batch_idx in range(num_batches):
         # batch_inputs = inputs[:, batch_idx * batch_size:(batch_idx + 1) * batch_size].unsqueeze(0)
@@ -91,7 +100,7 @@ for epoch in range(num_epochs):
         loss = criterion(outputs, batch_targets)
 
         # safe loss to list
-        loss_list.append(loss.item())
+        loss_for_batch.append(loss.item())
 
         # safe accuracy to list
         # preds = torch.sigmoid(output) >= 0.5
@@ -108,10 +117,18 @@ for epoch in range(num_epochs):
         # if (epoch + 1) % 20 == 0 and batch_idx == 0:
         if batch_idx % 400 == 0:
             print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
+    
+    # safe loss to list
+    loss_list.append(np.mean(loss_for_batch))
+
+print("Model training finished...")
+
+end_time = time.time()
+print(f"Training took {end_time - start_time} seconds")
 
 # Plot loss over time
 print("plotting...")
-sns.lineplot(x=list(range(1, len(loss_list)+1)), y=loss_list)
+sns.lineplot(x=list(range(1, len(loss_list)+1)), y=loss_list).set(xlabel='Epoch', ylabel='Loss', title='Loss over Epochs')
 plt.savefig(f"loss_{MODEL_NAME}.png")
 
 # sns.lineplot(x=list(range(1, len(acc_list)+1)), y=acc_list)

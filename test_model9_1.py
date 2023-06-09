@@ -10,22 +10,33 @@ import keyboard
 import pandas as pd
 import os
 import numpy as np
+import glob
 
 # BCI Data
 sampling_rate = BoardShim.get_sampling_rate(BoardIds.CYTON_DAISY_BOARD)
 duration = 3
 
-# get the trained Pytorch NN model
-model = EEGNET(1, 0.5, 1)
-model.load_state_dict(torch.load('EEGNET.pt'))
-model.eval()
-
 # directory
 CURR_DIR = os.path.dirname(os.path.abspath("pytorch.py"))
 MODEL_DIR = os.path.join(CURR_DIR, "models", "EEGNET_9_1.pt")
-file = os.path.join(CURR_DIR, "training_data", "right", "cleaned", "fft", "splitted", "data_test.csv")
+file = os.path.join(CURR_DIR, "training_data", "right", "cleaned", "fft")
 
-data = pd.read_csv(file, header=None)
+# get the trained Pytorch NN model
+model = EEGNET(1, 0.5, 1)
+model.load_state_dict(torch.load(MODEL_DIR))
+model.eval()
+
+# create empty df
+data = pd.DataFrame()
+
+# get all files in folder starting with data_training
+# file_list = glob.glob( os.path.join(CURR_DIR, 'data_training*'))
+file_list = glob.glob( os.path.join(file, 'data_training*'))
+# read all files and append to df
+for file in file_list:
+    tmpdf = pd.read_csv(file, header=None)
+    data = pd.concat([data, tmpdf],ignore_index=True)
+    print(data.shape)
 
 inputs = data.iloc[:, :6].values
 output = data.iloc[:,-1:].values
